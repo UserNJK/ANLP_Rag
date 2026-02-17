@@ -1,0 +1,18 @@
+[
+  {
+    "question": "What does ACID stand for in database systems?",
+    "answer": "ACID stands for atomicity, consistency, isolation, and durability."
+  },
+  {
+    "question": "Why are indexes used in databases?",
+    "answer": "Indexes speed up reads at the cost of additional write overhead."
+  },
+  {
+    "question": "What is the goal of normalization?",
+    "answer": "Normalization reduces redundancy and prevents anomalies."
+  },
+  {
+    "question": "How do query plans choose operators?",
+    "answer": "Query plans use statistics to select operators."
+  }
+]
