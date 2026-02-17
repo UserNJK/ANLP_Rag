@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What does ACID stand for in database systems?",
+    "reference": "ACID stands for atomicity, consistency, isolation, and durability.",
+    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
+    "non_rag_answer": "Insufficient information without retrieval context.",
+    "contexts": [
+      {
+        "score": 0.7153153419494629,
+        "id": "db_intro.pdf::chunk-0",
+        "source": "db_intro.pdf",
+        "chunk": 0,
+        "text": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies."
+      }
+    ]
+  },
+  {
+    "question": "Why are indexes used in databases?",
+    "reference": "Indexes speed up reads at the cost of additional write overhead.",
+    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
+    "non_rag_answer": "Insufficient information without retrieval context.",
+    "contexts": [
+      {
+        "score": 0.5086144208908081,
+        "id": "db_intro.pdf::chunk-0",
+        "source": "db_intro.pdf",
+        "chunk": 0,
+        "text": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies."
+      }
+    ]
+  },
+  {
+    "question": "What is the goal of normalization?",
+    "reference": "Normalization reduces redundancy and prevents anomalies.",
+    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
+    "non_rag_answer": "Insufficient information without retrieval context.",
+    "contexts": [
+      {
+        "score": 0.4124573767185211,
+        "id": "db_intro.pdf::chunk-0",
+        "source": "db_intro.pdf",
+        "chunk": 0,
+        "text": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies."
+      }
+    ]
+  },
+  {
+    "question": "How do query plans choose operators?",
+    "reference": "Query plans use statistics to select operators.",
+    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
+    "non_rag_answer": "Insufficient information without retrieval context.",
+    "contexts": [
+      {
+        "score": 0.40289658308029175,
+        "id": "db_intro.pdf::chunk-0",
+        "source": "db_intro.pdf",
+        "chunk": 0,
+        "text": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies."
+      }
+    ]
+  }
+]
