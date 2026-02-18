@@ -119,40 +119,40 @@ def query(question: str, top_k: int = 3, show_context: bool = True) -> None:
     print("=" * 80)
     
     # Retrieve context
-    print(f"\n🔍 Retrieving top-{top_k} relevant chunks...")
+    print(f"\nRetrieving top-{top_k} relevant chunks...")
     chunks = retrieve(question, top_k=top_k)
     
     if show_context and chunks:
-        print("\n📚 RETRIEVED CONTEXT:")
+        print("\nRETRIEVED CONTEXT:")
         for i, chunk in enumerate(chunks, 1):
             print(f"\n  [{i}] Score: {chunk['score']:.3f} | {chunk['source']} (Chunk {chunk['chunk']})")
             print(f"      {chunk['text'][:200]}...")
     
     # Generate RAG answer
-    print(f"\n🤖 Generating RAG answer (with context)...")
+    print(f"\nGenerating RAG answer (with context)...")
     rag_answer = _generate_rag_answer(question, chunks)
     
     # Generate non-RAG answer
-    print(f"🤖 Generating non-RAG answer (without context)...")
+    print(f"Generating non-RAG answer (without context)...")
     non_rag_answer = _generate_non_rag_answer(question)
     
     # Calculate comparison metrics
-    print(f"\n📊 Calculating comparison metrics...")
+    print(f"\nCalculating comparison metrics...")
     metrics = _calculate_metrics(rag_answer, non_rag_answer)
     
     # Display results
     print("\n" + "=" * 80)
-    print("✅ RAG ANSWER (with context):")
+    print("RAG ANSWER (with context):")
     print("=" * 80)
     print(rag_answer)
     
     print("\n" + "=" * 80)
-    print("❌ NON-RAG ANSWER (without context):")
+    print("NON-RAG ANSWER (without context):")
     print("=" * 80)
     print(non_rag_answer)
     
     print("\n" + "=" * 80)
-    print("📊 COMPARISON METRICS:")
+    print("COMPARISON METRICS:")
     print("=" * 80)
     print(f"  ROUGE-L Score:         {metrics['rouge_l']:.4f}")
     print(f"  Semantic Similarity:   {metrics['semantic_similarity']:.4f}")
@@ -163,11 +163,11 @@ def query(question: str, top_k: int = 3, show_context: bool = True) -> None:
     
     # Additional insights
     if metrics['semantic_similarity'] > 0.8:
-        print("\n💡 Both answers are semantically very similar.")
+        print("\nBoth answers are semantically very similar.")
     elif metrics['semantic_similarity'] < 0.5:
-        print("\n💡 The answers differ significantly - RAG provides context-specific information.")
+        print("\nThe answers differ significantly - RAG provides context-specific information.")
     else:
-        print("\n💡 The answers have moderate similarity.")
+        print("\nThe answers have moderate similarity.")
 
 
 def main():
@@ -186,7 +186,7 @@ def main():
         print("-" * 80)
         while True:
             try:
-                question = input("\n❓ Enter your question: ").strip()
+                question = input("\nEnter your question: ").strip()
                 if not question:
                     print("Please enter a question.")
                     continue
@@ -195,7 +195,7 @@ def main():
                 print("\n\nGoodbye!")
                 break
             except Exception as e:
-                print(f"\n❌ Error: {e}")
+                print(f"\nError: {e}")
     else:
         query(args.question, top_k=args.top_k, show_context=not args.no_context)
 
