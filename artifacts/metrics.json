@@ -2,37 +2,37 @@
   "per_question": [
     {
       "question": "What does ACID stand for in database systems?",
-      "rag_rougeL": 0.2857142857142857,
-      "non_rag_rougeL": 0.0,
-      "rag_semantic": 0.5531092286109924,
-      "non_rag_semantic": 0.018939491361379623
+      "rag_rougeL": 1.0,
+      "non_rag_rougeL": 0.35,
+      "rag_semantic": 1.0000001192092896,
+      "non_rag_semantic": 0.811008632183075
     },
     {
       "question": "Why are indexes used in databases?",
-      "rag_rougeL": 0.21052631578947367,
-      "non_rag_rougeL": 0.0,
-      "rag_semantic": 0.43067896366119385,
-      "non_rag_semantic": 0.21179790794849396
+      "rag_rougeL": 0.3870967741935483,
+      "non_rag_rougeL": 0.03560830860534125,
+      "rag_semantic": 0.8457497954368591,
+      "non_rag_semantic": 0.621432363986969
     },
     {
       "question": "What is the goal of normalization?",
-      "rag_rougeL": 0.303030303030303,
-      "non_rag_rougeL": 0.0,
-      "rag_semantic": 0.5071209669113159,
-      "non_rag_semantic": 0.17754365503787994
+      "rag_rougeL": 0.9090909090909091,
+      "non_rag_rougeL": 0.05235602094240838,
+      "rag_semantic": 0.9791010022163391,
+      "non_rag_semantic": 0.6288518309593201
     },
     {
       "question": "How do query plans choose operators?",
-      "rag_rougeL": 0.35294117647058826,
-      "non_rag_rougeL": 0.0,
-      "rag_semantic": 0.4329919219017029,
-      "non_rag_semantic": 0.2011042684316635
+      "rag_rougeL": 0.8571428571428571,
+      "non_rag_rougeL": 0.03713527851458886,
+      "rag_semantic": 0.9844399690628052,
+      "non_rag_semantic": 0.6299338340759277
     }
   ],
   "average": {
-    "rag_rougeL": 0.28805302025116264,
-    "non_rag_rougeL": 0.0,
-    "rag_semantic": 0.48097527027130127,
-    "non_rag_semantic": 0.15234633069485426
+    "rag_rougeL": 0.7883326351068286,
+    "non_rag_rougeL": 0.11877490201558462,
+    "rag_semantic": 0.9523227214813232,
+    "non_rag_semantic": 0.6728066653013229
   }
 }

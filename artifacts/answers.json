@@ -2,8 +2,8 @@
   {
     "question": "What does ACID stand for in database systems?",
     "reference": "ACID stands for atomicity, consistency, isolation, and durability.",
-    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
-    "non_rag_answer": "Insufficient information without retrieval context.",
+    "rag_answer": "ACID stands for atomicity, consistency, isolation, and durability.",
+    "non_rag_answer": "In database systems, ACID is an acronym that stands for:\n\nA - Atomicity\nC - Consistency\nI - Isolation\nD - Durability\n\nThese four properties are essential for ensuring the reliability and integrity of database transactions.",
     "contexts": [
       {
         "score": 0.7153153419494629,
@@ -17,8 +17,8 @@
   {
     "question": "Why are indexes used in databases?",
     "reference": "Indexes speed up reads at the cost of additional write overhead.",
-    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
-    "non_rag_answer": "Insufficient information without retrieval context.",
+    "rag_answer": "Indexes are used in databases to speed up reads, although they come with a trade-off of increased write cost.",
+    "non_rag_answer": "Indexes are used in databases to improve the speed of data retrieval by providing a quick way to locate specific data. Here are some reasons why indexes are used in databases:\n\n1. **Faster Query Performance**: Indexes allow the database to quickly locate specific data, reducing the time it takes to execute queries. By creating an index on a column or set of columns, the database can quickly scan the index to find the required data, rather than scanning the entire table.\n2. **Reduced Disk I/O**: When a query is executed, the database has to read data from disk. Indexes reduce the amount of disk I/O required, as the database only needs to read the index and then directly access the required data.\n3. **Improved Data Retrieval**: Indexes enable the database to efficiently retrieve data based on specific conditions, such as filtering or sorting. This is particularly useful for queries that involve complex conditions or large datasets.\n4. **Reducing Full Table Scans**: Without an index, the database may need to perform a full table scan to find the required data. This can be time-consuming and resource-intensive, especially for large tables. Indexes help avoid full table scans by providing a quick way to locate specific data.\n5. **Supporting Query Optimization**: Indexes provide the query optimizer with additional information to optimize query execution plans. This can lead to better query performance and reduced resource utilization.\n6. **Enforcing Uniqueness**: Indexes can be used to enforce uniqueness constraints, ensuring that duplicate values are not inserted into a table.\n7. **Supporting Data Integrity**: Indexes can help maintain data integrity by ensuring that data is consistent and accurate.\n\nCommon types of indexes used in databases include:\n\n1. B-tree indexes\n2. Hash indexes\n3. Full-text indexes\n4. Composite indexes\n5. Unique indexes\n\nOverall, indexes are a crucial component of database design, as they help improve query performance, reduce disk I/O, and support data integrity and query optimization.",
     "contexts": [
       {
         "score": 0.5086144208908081,
@@ -32,8 +32,8 @@
   {
     "question": "What is the goal of normalization?",
     "reference": "Normalization reduces redundancy and prevents anomalies.",
-    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
-    "non_rag_answer": "Insufficient information without retrieval context.",
+    "rag_answer": "Normalization reduces redundancy and anomalies.",
+    "non_rag_answer": "The primary goal of normalization is to organize and structure data in a database in a way that minimizes data redundancy and dependency, and improves data integrity and scalability.\n\nNormalization involves dividing large tables into smaller, more manageable tables, and linking them through relationships. This process helps to:\n\n1. **Eliminate data redundancy**: By removing duplicate data, normalization reduces data inconsistency and improves data accuracy.\n2. **Improve data integrity**: Normalization ensures that each piece of data is stored in one place and one place only, making it easier to maintain and update data.\n3. **Reduce data anomalies**: Normalization helps to prevent data anomalies, such as insertion, update, and deletion anomalies, which can occur when data is not properly structured.\n4. **Improve scalability**: Normalization makes it easier to add new data or modify existing data without affecting the entire database.\n5. **Simplify data retrieval**: Normalization makes it easier to retrieve data by reducing the complexity of queries and improving query performance.\n\nOverall, the goal of normalization is to create a database design that is efficient, scalable, and easy to maintain, while also ensuring data integrity and accuracy.",
     "contexts": [
       {
         "score": 0.4124573767185211,
@@ -47,8 +47,8 @@
   {
     "question": "How do query plans choose operators?",
     "reference": "Query plans use statistics to select operators.",
-    "rag_answer": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies.",
-    "non_rag_answer": "Insufficient information without retrieval context.",
+    "rag_answer": "Query plans use statistics to choose operators.",
+    "non_rag_answer": "Query plans choose operators through a process called query optimization, which involves selecting the most efficient sequence of operations to execute a query. Here's a simplified overview of how query plans choose operators:\n\n1. **Parsing**: The query is parsed into an abstract syntax tree (AST) representation, which breaks down the query into its constituent parts, such as tables, joins, filters, and aggregations.\n2. **Analysis**: The query optimizer analyzes the AST to identify the available operators that can be used to execute each part of the query. For example, for a join operation, the optimizer might consider different join algorithms, such as nested loops, hash joins, or sort-merge joins.\n3. **Cost estimation**: The optimizer estimates the cost of each possible operator for each part of the query. The cost is typically based on factors such as:\n\t* I/O costs (e.g., disk reads, network latency)\n\t* CPU costs (e.g., computation, memory access)\n\t* Cardinality (e.g., number of rows, selectivity)\n\t* Statistics (e.g., data distribution, histograms)\n4. **Operator selection**: The optimizer selects the operator with the lowest estimated cost for each part of the query. This is often done using a combination of heuristics and cost-based optimization techniques, such as:\n\t* Dynamic programming\n\t* Greedy algorithms\n\t* Genetic algorithms\n5. **Plan generation**: The selected operators are combined to form a query plan, which is a tree-like data structure representing the sequence of operations to execute the query.\n6. **Plan refinement**: The query plan is refined by applying additional optimizations, such as:\n\t* Reordering operations to reduce I/O or CPU costs\n\t* Merging or splitting operations to reduce overhead\n\t* Applying transformations, such as predicate pushdown or join reordering\n\nSome common factors that influence operator selection include:\n\n* **Index availability**: The presence of indexes on columns used in the query can significantly impact operator selection.\n* **Data distribution**: The distribution of data in the tables, such as skewness or correlations, can affect the choice of operator.\n* **Query constraints**: Constraints, such as filters or aggregations, can influence the selection of operators.\n* **System resources**: The availability of system resources, such as memory, CPU, or I/O bandwidth, can impact operator selection.\n\nKeep in mind that query optimization is a complex process, and different database management systems (DBMS) may",
     "contexts": [
       {
         "score": 0.40289658308029175,
