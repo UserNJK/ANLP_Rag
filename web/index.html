@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANLP_Rag</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="Chat history">
+        <div class="sidebar-header">
+          <div class="brand">ANLP_Rag</div>
+          <button id="newChatBtn" class="btn btn-ghost" type="button">New</button>
+        </div>
+        <div id="chatList" class="chat-list" role="list"></div>
+      </aside>
+
+      <main class="main" aria-label="Chat">
+        <div id="thread" class="thread" aria-live="polite"></div>
+
+        <form id="askForm" class="composer" autocomplete="off">
+          <input
+            id="questionInput"
+            class="composer-input"
+            type="text"
+            placeholder="Ask a question…"
+            aria-label="Question"
+          />
+          <button id="sendBtn" class="btn btn-primary" type="submit">Send</button>
+        </form>
+
+        <div id="status" class="status" role="status"></div>
+      </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

@@ -1,8 +1,12 @@
 # Environment variables (contains API keys - DO NOT COMMIT)
 .env
 
-# PDF files (may contain copyrighted material)
-data/*database-design*.pdf
+# Local corpus / database content (do not commit)
+data/**
+!data/questions.json
+
+# Large docs / datasets
+*.pdf
 
 # Python
 __pycache__/

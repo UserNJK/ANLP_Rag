@@ -7,7 +7,7 @@ from typing import Iterable
 
 import faiss
 import numpy as np
-from PyPDF2 import PdfReader
+import torch
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
@@ -23,50 +23,93 @@ def _normalize_text(text: str) -> str:
     return text.strip()
 
 
-def _read_pdfs(data_dir: Path) -> Iterable[tuple[str, str]]:
-    for pdf_path in sorted(data_dir.glob("*.pdf")):
-        reader = PdfReader(str(pdf_path))
-        pages = [page.extract_text() or "" for page in reader.pages]
-        raw_text = "\n".join(pages)
-        yield pdf_path.name, _normalize_text(raw_text)
+def _read_jsonl_files(data_dir: Path) -> Iterable[dict]:
+    """Read JSONL files and yield enriched document chunks."""
+    for jsonl_path in sorted(data_dir.glob("*.jsonl")):
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        record = json.loads(line)
+                        yield {
+                            "source_file": jsonl_path.name,
+                            "chunk_id": record.get("chunk_id", ""),
+                            "book_title": record.get("book_title", ""),
+                            "chapter_title": record.get("chapter_title", ""),
+                            "content": _normalize_text(record.get("content", "")),
+                        }
+                    except json.JSONDecodeError:
+                        continue
 
 
-def _chunk_words(text: str, chunk_size: int = 200, overlap: int = 40) -> list[str]:
+def _is_high_quality_chunk(text: str) -> bool:
     words = text.split()
-    if not words:
-        return []
-    chunks = []
-    start = 0
-    while start < len(words):
-        end = min(start + chunk_size, len(words))
-        chunks.append(" ".join(words[start:end]))
-        if end == len(words):
-            break
-        start = max(0, end - overlap)
-    return chunks
+    if len(words) < 35:
+        return False
+
+    chars = [ch for ch in text if not ch.isspace()]
+    if not chars:
+        return False
+
+    alpha_chars = sum(1 for ch in chars if ch.isalpha())
+    alpha_ratio = alpha_chars / len(chars)
+    if alpha_ratio < 0.62:
+        return False
+
+    bad_char_ratio = sum(1 for ch in chars if ch in {"~", "|", "_", "^"}) / len(chars)
+    if bad_char_ratio > 0.08:
+        return False
+
+    garbage_tokens = 0
+    for token in words:
+        clean = re.sub(r"[^A-Za-z]", "", token)
+        if len(clean) >= 6:
+            vowels = sum(1 for ch in clean.lower() if ch in "aeiou")
+            if vowels == 0:
+                garbage_tokens += 1
+
+    if garbage_tokens / max(len(words), 1) > 0.08:
+        return False
+
+    return True
+
 
 
 def build_index() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     docs = []
-    for source, text in _read_pdfs(DATA_DIR):
-        for idx, chunk in enumerate(_chunk_words(text)):
-            docs.append(
-                {
-                    "id": f"{source}::chunk-{idx}",
-                    "source": source,
-                    "chunk": idx,
-                    "text": chunk,
-                }
-            )
+    skipped_low_quality = 0
+    skipped_empty = 0
+    for record in _read_jsonl_files(DATA_DIR):
+        content = record["content"]
+        if not content:
+            skipped_empty += 1
+            continue
+        if not _is_high_quality_chunk(content):
+            skipped_low_quality += 1
+            continue
+
+        docs.append(
+            {
+                "id": record["chunk_id"],
+                "source": record["book_title"] or record["source_file"],
+                "chapter": record["chapter_title"],
+                "chunk": record["chunk_id"].split("_")[-1] if "_" in record["chunk_id"] else "0",
+                "text": content,
+            }
+        )
 
     if not docs:
-        raise SystemExit("No PDF text found. Add PDFs to ./data and retry.")
+        raise SystemExit("No JSONL content found. Add JSONL files to ./data and retry.")
 
-    model = SentenceTransformer(MODEL_NAME)
+    # Use GPU if available
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+    
+    model = SentenceTransformer(MODEL_NAME, device=device)
     texts = [d["text"] for d in docs]
-    embeddings = model.encode(texts, batch_size=32, show_progress_bar=True)
+    embeddings = model.encode(texts, batch_size=32, show_progress_bar=True, device=device)
     embeddings = np.asarray(embeddings, dtype="float32")
     faiss.normalize_L2(embeddings)
 
@@ -79,6 +122,8 @@ def build_index() -> None:
     )
 
     print(f"Indexed {len(docs)} chunks to {OUT_DIR}")
+    print(f"Skipped empty chunks: {skipped_empty}")
+    print(f"Skipped low-quality chunks: {skipped_low_quality}")
 
 
 if __name__ == "__main__":

@@ -1,192 +1,157 @@
-# RAG System (Database Systems)
+# ANLP_Rag — Retrieval-Augmented Generation (RAG)
 
-This repo implements a complete **RAG (Retrieval-Augmented Generation)** pipeline for the **Database Systems** domain using OpenRouter with **meta-llama/llama-3.1-70b-instruct**.
+This repo implements a small end-to-end **RAG (Retrieval-Augmented Generation)** pipeline:
 
-## Prerequisites
+1. Build a FAISS index from a local **JSONL chunk corpus** in `data/`
+2. Retrieve top-k chunks for a question
+3. Generate answers using **OpenRouter** (LLM) with and without retrieved context
+4. (Optional) Run a batch comparison + evaluation (ROUGE-L + semantic similarity)
 
-Before running this project, you need:
+The PowerShell scripts are aimed at Windows, but you can also run the Python entrypoints directly.
 
-1. **Python 3.8+** installed on your system
-2. **OpenRouter API Key** - Get it from [https://openrouter.ai/keys](https://openrouter.ai/keys)
-3. **PDF Dataset** - Place your database systems PDFs in the `data/` folder
-4. **Internet connection** - For downloading embeddings model and API calls
+## Requirements
 
-## What is included
+- Python **3.9+**
+- An OpenRouter API key: https://openrouter.ai/keys
+- Internet access (downloads the embedding model, calls OpenRouter)
 
-- A small database systems PDF knowledge base in `data/`.
-- A script that extracts text, chunks it, builds MiniLM embeddings, and writes a FAISS index.
-- A retrieval script that returns top-k chunks for a query.
-- **Full LLM integration** using OpenRouter API for answer generation.
-- RAG vs non-RAG comparison and evaluation (ROUGE + semantic similarity).
+## Dataset format (JSONL)
 
-## Features
+Put one or more `*.jsonl` files under `data/`. Each line must be a JSON object. The indexer expects (at minimum) a `content` field.
 
-- ✅ Vector-based retrieval using FAISS and sentence-transformers
-- ✅ LLM-powered answer generation using OpenRouter with **meta-llama/llama-3.1-70b-instruct**
-- ✅ RAG (with context) vs. non-RAG (without context) comparison
-- ✅ Automatic evaluation with ROUGE-L and semantic similarity metrics
-- ✅ Interactive query interface
+Expected fields (used by `src/build_index.py`):
+
+```json
+{
+  "chunk_id": "Book_Chapter_0001",
+  "book_title": "Some Book",
+  "chapter_title": "Chapter Name",
+  "content": "Text content for this chunk..."
+}
+```
+
+Notes:
+
+- Empty / low-quality chunks are skipped automatically.
+- If CUDA is available, embeddings will run on GPU automatically.
 
 ## Setup
 
-### 1. Clone and navigate to the project
-
-```bash
-cd ANLP_Rag
-```
-
-### 2. Add your dataset
-
-Place your database systems PDF files in the `data/` folder. The system will:
-- Extract text from PDFs
-- Chunk them for efficient retrieval
-- Build a vector index using FAISS
-
-Example PDF: `data/db_intro.pdf` (already included)
-
-### 3. Install dependencies
-
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-**Dependencies include:**
-- `faiss-cpu` - Vector similarity search
-- `sentence-transformers` - Text embeddings (all-MiniLM-L6-v2)
-- `openai` - OpenRouter API client
-- `python-dotenv` - Environment variable management
-- `P🚀 Quick Query (Recommended)
+Create a `.env` file in the repo root:
 
-**Short PowerShell command:**
+```env
+OPENROUTER_API_KEY=your_key_here
+```
+
+## Build the index
+
+```powershell
+python src\build_index.py
+```
+
+Outputs (written to `artifacts/`):
+
+- `index.faiss` — FAISS vector index
+- `metadata.json` — chunk metadata + text
+
+## Query (recommended)
 
 ```powershell
 .\query.ps1 "Your question here"
 ```
 
-**Examples:**
+Examples:
+
 ```powershell
-# Ask about ACID
-.\query.ps1 "What is ACID?"
-
-# Ask about normalization
-.\query.ps1 "What is normalization?"
-
 # Interactive mode
 .\query.ps1 -Interactive
 
-# Get top 5 chunks
-.\query.ps1 "How do indexes work?" -TopK 5
+# Retrieve 5 chunks
+.\query.ps1 "Who was Ashoka?" -TopK 5
 
-# Hide retrieved context
-.\query.ps1 "What is ACID?" -NoContext
+# Hide retrieved context printing
+.\query.ps1 "What is the Mauryan Empire?" -NoContext
 ```
 
-**What you get:**
-- 🔍 Retrieved context from your knowledge base
-- ✅ RAG answer (with context) using **meta-llama/llama-3.1-70b-instruct**
-- ❌ Non-RAG answer (without context)
-- 📊 **ROUGE-L Score** - Measures word overlap (0=no match, 1=identical)
-- 📊 **Semantic Similarity** - Measures meaning similarity (0=different, 1=same)
+The query tool prints:
 
-**Example Output:**
+- Retrieved context (optional)
+- RAG answer (with context)
+- Non-RAG answer (without context)
+- Comparison metrics: ROUGE-L and semantic similarity
 
-```
-================================================================================
-QUESTION: What is normalization?
-================================================================================
+## Web UI
 
-🔍 Retrieving top-3 relevant chunks...
+This runs the same RAG answering flow in a simple local webpage (no login).
 
-📚 RETRIEVED CONTEXT:
-  [1] Score: 0.466 | db_intro.pdf (Chunk 0)
-      Database systems overview... Normalization reduces redundancy and anomalies...
-
-🤖 Generating RAG answer (with context)...
-🤖 Generating non-RAG answer (without context)...
-
-================================================================================
-✅ RAG ANSWER (with context):
-================================================================================
-Normalization reduces redundancy and anomalies in database design.
-
-================================================================================
-❌ NON-RAG ANSWER (without context):
-================================================================================
-Normalization is a process in data preparation that involves scaling numeric 
-data to a common range, usually between 0 and 1...
-
-================================================================================
-📊 COMPARISON METRICS:
-================================================================================
-  ROUGE-L Score:         0.0211
-  Semantic Similarity:   0.5278
-
-  Interpretation:
-    - ROUGE-L measures word overlap (0=no overlap, 1=identical)
-    - Semantic Similarity measures meaning similarity (0=different, 1=same)
-================================================================================
-
-💡 The answers differ significantly - RAG provides context-specific information.
+```powershell
+pip install -r requirements.txt
+python -m uvicorn web_app:app --reload --port 8000
 ```
 
-**Why this matters:** In this example, without context, the LLM talks about data scaling 
-(ML normalization), but with context, it correctly explains database normalization. This 
-demonstrates the power of RAG in providing domain-specific answers!
+Open:
 
----
+- http://127.0.0.1:8000
 
-### Alternative: Python command
+### Alternative: run Python directly
 
-```bash
-# Single question
-python src\query.py "What is ACID?"
-
-# Interactive mode (ask multiple questions)
+```powershell
+python src\query.py "Who was Akbar?" --top-k 10
 python src\query.py --interactive
 ```
 
-**Options:**
-- `--top-k N`: Retrieve top N chunks (default: 3)
-- `--no-context`: Hide retrieved context in output
-- `--interactive` or `-i`: Interactive mode for multiple questions
+Options:
 
----
+- `--top-k N` (default: 10)
+- `--no-context`
+- `--interactive` / `-i`
 
-### Other Commands
+## Retrieve only (no LLM)
 
-**Retrieve top-k chunks only:**
-
-```bash
-python src\retrieve.py "What does ACID stand for?" --top-k 3
+```powershell
+python src\retrieve.py "Vijayanagar empire" --top-k 5
 ```
 
-**Batch RAG vs non-RAG comparison:**
+## Batch compare + evaluation
 
-This generates answers using both RAG (with retrieved context) and non-RAG (LLM only) approaches for all questions in `data/questions.json`:
+1) Edit `data/questions.json` to contain your evaluation set:
 
-```bash
+```json
+[
+  {"question": "...", "answer": "..."}
+]
+```
+
+2) Run:
+
+```powershell
 python src\rag_compare.py
-```
-
-**Evaluate answers:**
-
-```bash
 python src\evaluate.py
 ```
 
-**Run complete pipeline:**
+Outputs (written to `artifacts/`):
 
-```bash
+- `answers.json` — for each question: reference, rag answer, non-rag answer, retrieved contexts
+- `metrics.json` — per-question and average ROUGE-L + semantic similarity
+
+## Run the full pipeline
+
+```powershell
 .\run_all.ps1
 ```
 
-## Outputs
+## Models used
 
-All outputs are written to `artifacts/`:
+- Embeddings: `sentence-transformers/all-MiniLM-L6-v2`
+- LLM (OpenRouter): `meta-llama/llama-3.1-70b-instruct`
 
-- `index.faiss` - FAISS vector index
-- `metadata.json` - Chunk metadata
-- `answers.json` - Generated answers (from rag_compare.py)
-- `metrics.json` - Evaluation metrics (from evaluate.py)
+## Troubleshooting
+
+- Missing index: run `python src\build_index.py` first.
+- Missing key: set `OPENROUTER_API_KEY` in `.env` or your environment.

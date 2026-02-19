@@ -1,8 +1,0 @@
-[
-  {
-    "id": "db_intro.pdf::chunk-0",
-    "source": "db_intro.pdf",
-    "chunk": 0,
-    "text": "Database systems overview. ACID: atomicity, consistency, isolation, durability. Indexes speed reads; trade off write cost. Query plans use statistics to choose operators. Normalization reduces redundancy and anomalies."
-  }
-]

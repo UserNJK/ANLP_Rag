@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import torch
 from dotenv import load_dotenv
 from openai import OpenAI
 from rouge_score import rouge_scorer
@@ -49,7 +50,14 @@ def _generate_rag_answer(question: str, chunks: list[dict]) -> str:
     ])
     
     # Create prompt for the LLM
-    prompt = f"""Based on the following context, answer the question. If the answer cannot be found in the context, say so.
+    prompt = f"""Use only the context below to answer the question.
+Write a complete and specific answer (target 180-300 words) with key details, timeline, and important terms when available.
+If the context is insufficient, clearly state what is missing instead of guessing.
+Use this structure:
+1) Direct answer
+2) Key details
+3) Timeline / periodization (if present)
+4) Sources used
 
 Context:
 {context}
@@ -62,11 +70,11 @@ Answer:"""
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that answers questions based on the provided context. Be concise and accurate."},
+                {"role": "system", "content": "You are a historical RAG assistant. Provide detailed, faithful answers grounded in the provided context only. Prefer completeness over brevity, but avoid fluff."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=500,
+            temperature=0.2,
+            max_tokens=1200,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -97,8 +105,9 @@ def _calculate_metrics(answer1: str, answer2: str) -> dict:
     rouge_score = scorer.score(answer1, answer2)["rougeL"].fmeasure
     
     # Semantic similarity
-    model = SentenceTransformer(EMBEDDING_MODEL)
-    emb1, emb2 = model.encode([answer1, answer2])
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = SentenceTransformer(EMBEDDING_MODEL, device=device)
+    emb1, emb2 = model.encode([answer1, answer2], device=device)
     semantic_sim = _cosine(emb1, emb2)
     
     return {
@@ -107,7 +116,7 @@ def _calculate_metrics(answer1: str, answer2: str) -> dict:
     }
 
 
-def query(question: str, top_k: int = 3, show_context: bool = True) -> None:
+def query(question: str, top_k: int = 10, show_context: bool = True) -> None:
     """Query the RAG system and compare with non-RAG answer."""
     if not OPENROUTER_API_KEY:
         raise SystemExit(
@@ -175,7 +184,7 @@ def main():
         description="Query the RAG system and compare with non-RAG answer."
     )
     parser.add_argument("question", nargs="?", help="Your question")
-    parser.add_argument("--top-k", type=int, default=3, help="Number of chunks to retrieve (default: 3)")
+    parser.add_argument("--top-k", type=int, default=10, help="Number of chunks to retrieve (default: 10)")
     parser.add_argument("--no-context", action="store_true", help="Hide retrieved context")
     parser.add_argument("--interactive", "-i", action="store_true", help="Interactive mode")
     
