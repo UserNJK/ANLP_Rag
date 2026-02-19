@@ -17,7 +17,29 @@ The PowerShell scripts are aimed at Windows, but you can also run the Python ent
 
 ## Dataset format (JSONL)
 
-Put one or more `*.jsonl` files under `data/`. Each line must be a JSON object. The indexer expects (at minimum) a `content` field.
+Put one or more `*.jsonl` files anywhere under `data/` (for example `data/DB/`). Each line must be a JSON object. The indexer expects (at minimum) a `content` field.
+
+### Dataset source (this project)
+
+- Kaggle: [IndHist-RAG: Indian History Retrieval Corpus](https://www.kaggle.com/datasets/kanav608/input-data)
+- Description: OCR-cleaned, structured Indian history corpus for RAG / retrieval systems
+- Typical size (as listed on Kaggle): ~167 MB
+- File format: JSON Lines (`.jsonl`)
+- File count: ~112–114 files (varies by version)
+- Chunk count: ~124k passage-level records
+
+This repo expects these files under `data/DB/` (or any folder inside `data/`).
+
+Common metadata fields in records include:
+
+- `chunk_id`
+- `series_id` / `series_title`
+- `volume_title`
+- `chapter_title`
+- `page`
+- `content`
+
+Note: Kaggle currently shows license information as unknown on the dataset page. Verify usage rights before redistribution.
 
 Expected fields (used by `src/build_index.py`):
 

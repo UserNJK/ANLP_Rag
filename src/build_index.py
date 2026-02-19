@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT_DIR / "data"
+DATA_DIR = ROOT_DIR / "data/DB"
 OUT_DIR = ROOT_DIR / "artifacts"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -25,14 +25,15 @@ def _normalize_text(text: str) -> str:
 
 def _read_jsonl_files(data_dir: Path) -> Iterable[dict]:
     """Read JSONL files and yield enriched document chunks."""
-    for jsonl_path in sorted(data_dir.glob("*.jsonl")):
+    # Allow nested corpora (e.g. data/DB/*.jsonl)
+    for jsonl_path in sorted(data_dir.rglob("*.jsonl")):
         with open(jsonl_path, "r", encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     try:
                         record = json.loads(line)
                         yield {
-                            "source_file": jsonl_path.name,
+                            "source_file": jsonl_path.relative_to(data_dir).as_posix(),
                             "chunk_id": record.get("chunk_id", ""),
                             "book_title": record.get("book_title", ""),
                             "chapter_title": record.get("chapter_title", ""),
@@ -101,7 +102,9 @@ def build_index() -> None:
         )
 
     if not docs:
-        raise SystemExit("No JSONL content found. Add JSONL files to ./data and retry.")
+        raise SystemExit(
+            "No JSONL content found. Put *.jsonl under ./data (e.g. ./data/DB) and retry."
+        )
 
     # Use GPU if available
     device = "cuda" if torch.cuda.is_available() else "cpu"
