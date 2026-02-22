@@ -77,6 +77,9 @@ async function loadChatList() {
   }
 
   for (const c of chats) {
+    const row = document.createElement("div");
+    row.className = "chat-row";
+
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "chat-item";
@@ -95,7 +98,20 @@ async function loadChatList() {
     btn.appendChild(title);
     btn.appendChild(meta);
     btn.addEventListener("click", () => openChat(c.id));
-    chatListEl.appendChild(btn);
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "chat-delete";
+    del.setAttribute("aria-label", "Delete chat");
+    del.textContent = "Delete";
+    del.addEventListener("click", async (evt) => {
+      evt.stopPropagation();
+      await deleteChat(c.id);
+    });
+
+    row.appendChild(btn);
+    row.appendChild(del);
+    chatListEl.appendChild(row);
   }
 }
 
@@ -114,6 +130,27 @@ async function openChat(chatId) {
     renderMessage(m.role, m.content || "");
   }
   scrollThreadToBottom();
+}
+
+async function deleteChat(chatId) {
+  const ok = window.confirm("Delete this chat?");
+  if (!ok) return;
+
+  try {
+    await fetchJson(`/api/chats/${encodeURIComponent(chatId)}`, {
+      method: "DELETE",
+    });
+
+    if (currentChatId === chatId) {
+      currentChatId = null;
+      clearThread();
+    }
+
+    await loadChatList();
+    setStatus("");
+  } catch (e) {
+    setStatus(e.message || String(e));
+  }
 }
 
 function newChat() {

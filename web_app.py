@@ -173,6 +173,17 @@ def get_chat(chat_id: str) -> dict[str, Any]:
     return {"chat": chat}
 
 
+@app.delete("/api/chats/{chat_id}")
+def delete_chat(chat_id: str) -> dict[str, Any]:
+    chats = _read_chat_store()
+    remaining = [c for c in chats if c.get("id") != chat_id]
+    if len(remaining) == len(chats):
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    _write_chat_store(remaining)
+    return {"ok": True, "deleted": chat_id}
+
+
 @app.post("/api/ask")
 def ask(payload: dict[str, Any]) -> dict[str, Any]:
     question = str(payload.get("question", "")).strip()
@@ -197,7 +208,9 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
     if chat_id:
         chat = _find_chat(chats, chat_id)
         if not chat:
-            raise HTTPException(status_code=404, detail="Chat not found")
+            # If the client has a stale chat_id, start a new chat instead.
+            chat = {"id": str(uuid.uuid4()), "created_at": _utc_now_iso(), "messages": []}
+            chats.append(chat)
     else:
         chat = {"id": str(uuid.uuid4()), "created_at": _utc_now_iso(), "messages": []}
         chats.append(chat)

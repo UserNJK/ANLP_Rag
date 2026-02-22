@@ -1,10 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
 :root {
-  --bg: #ffffff;
-  --panel: #fafafa;
-  --text: #111111;
-  --muted: #666666;
-  --border: #e6e6e6;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --bg: #0b0f17;
+  --bg-2: #0f1626;
+  --panel: #101826;
+  --panel-2: #0f1d2f;
+  --text: #e9f0ff;
+  --muted: #9aa7bf;
+  --border: rgba(148, 163, 184, 0.18);
+  --shadow: 0 12px 30px rgba(6, 11, 24, 0.55);
+  --accent: #6ae4ff;
+  --accent-2: #7c7bff;
+  --accent-3: #2dd4bf;
+  --danger: #ff6b6b;
 }
 
 * {
@@ -18,23 +26,38 @@ body {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: radial-gradient(1200px 800px at 10% 10%, #14223a 0%, rgba(20, 34, 58, 0.2) 45%, transparent 70%),
+    radial-gradient(900px 700px at 80% 0%, rgba(108, 99, 255, 0.18) 0%, transparent 60%),
+    linear-gradient(160deg, var(--bg), var(--bg-2));
   color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji",
-    "Segoe UI Emoji";
-  font-size: 14px;
-  line-height: 1.45;
+  font-family: "Sora", "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(106, 228, 255, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(124, 123, 255, 0.08), transparent 45%),
+    repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 7px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .app {
   height: 100vh;
   display: grid;
   grid-template-columns: 320px 1fr;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar {
   border-right: 1px solid var(--border);
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(16, 24, 38, 0.95), rgba(12, 18, 32, 0.9));
+  backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   min-width: 260px;
@@ -49,13 +72,24 @@ body {
 }
 
 .brand {
-  font-weight: 600;
-  letter-spacing: 0.2px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--accent);
 }
 
 .chat-list {
   padding: 10px;
   overflow: auto;
+}
+
+.chat-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .chat-item {
@@ -70,13 +104,31 @@ body {
   color: var(--text);
 }
 
+.chat-delete {
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  background: rgba(35, 17, 22, 0.9);
+  color: #ff9aa2;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.chat-delete:hover {
+  border-color: rgba(255, 107, 107, 0.7);
+  box-shadow: 0 8px 16px rgba(64, 20, 28, 0.45);
+  transform: translateY(-1px);
+}
+
 .chat-item:hover {
-  background: #f2f2f2;
+  background: rgba(110, 231, 255, 0.06);
+  border-color: rgba(106, 228, 255, 0.3);
 }
 
 .chat-item[aria-current="true"] {
-  background: #efefef;
-  border-color: #e0e0e0;
+  background: linear-gradient(120deg, rgba(106, 228, 255, 0.18), rgba(124, 123, 255, 0.1));
+  border-color: rgba(106, 228, 255, 0.45);
 }
 
 .chat-title {
@@ -97,35 +149,42 @@ body {
   display: grid;
   grid-template-rows: 1fr auto auto;
   min-width: 0;
+  background: linear-gradient(180deg, rgba(10, 16, 29, 0.72), rgba(8, 12, 22, 0.95));
 }
 
 .thread {
-  padding: 20px 20px 10px 20px;
+  padding: 24px 24px 10px 24px;
   overflow: auto;
 }
 
 .msg {
   max-width: 820px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow);
-  background: #fff;
-  margin: 0 0 12px 0;
+  background: linear-gradient(135deg, rgba(18, 28, 46, 0.98), rgba(12, 20, 34, 0.98));
+  margin: 0 0 14px 0;
+  animation: floatIn 320ms ease-out both;
 }
 
 .msg.user {
   margin-left: auto;
+  border-color: rgba(106, 228, 255, 0.45);
+  background: linear-gradient(120deg, rgba(10, 24, 44, 0.95), rgba(8, 22, 38, 0.95));
 }
 
 .msg.assistant {
   margin-right: auto;
+  border-color: rgba(124, 123, 255, 0.35);
 }
 
 .msg-role {
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .msg-content {
@@ -139,48 +198,56 @@ body {
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
+  background: rgba(12, 18, 30, 0.9);
+  backdrop-filter: blur(8px);
 }
 
 .composer-input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.4);
   outline: none;
   font-size: 14px;
+  background: rgba(9, 14, 24, 0.9);
+  color: var(--text);
 }
 
 .composer-input:focus {
-  border-color: #d0d0d0;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(106, 228, 255, 0.12);
 }
 
 .btn {
   border: 1px solid var(--border);
-  background: #fff;
+  background: rgba(16, 24, 38, 0.9);
   color: var(--text);
   padding: 9px 12px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 13px;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .btn:hover {
-  background: #f5f5f5;
+  border-color: rgba(106, 228, 255, 0.4);
+  box-shadow: 0 8px 16px rgba(9, 14, 24, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-primary {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #071321;
+  border-color: transparent;
+  font-weight: 600;
 }
 
 .btn-primary:hover {
-  background: #000;
-  border-color: #000;
+  box-shadow: 0 12px 24px rgba(106, 228, 255, 0.25);
 }
 
 .btn-ghost {
-  background: transparent;
+  background: rgba(15, 23, 42, 0.6);
 }
 
 .status {
@@ -188,6 +255,19 @@ body {
   font-size: 12px;
   color: var(--muted);
   min-height: 18px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 860px) {
