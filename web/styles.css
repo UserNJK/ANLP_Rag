@@ -191,6 +191,18 @@ body::before {
   white-space: pre-wrap;
 }
 
+.msg-metrics {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(15, 29, 47, 0.55);
+  color: var(--muted);
+  font-size: 12px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
 .composer {
   border-top: 1px solid var(--border);
   padding: 12px;

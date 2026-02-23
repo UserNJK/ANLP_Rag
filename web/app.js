@@ -21,7 +21,14 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function renderMessage(role, content) {
+function formatMetric(value) {
+  if (value === null || value === undefined) return "—";
+  const n = Number(value);
+  if (Number.isNaN(n)) return "—";
+  return n.toFixed(3);
+}
+
+function renderMessage(role, content, metrics) {
   const msg = document.createElement("div");
   msg.className = `msg ${role}`;
 
@@ -35,6 +42,17 @@ function renderMessage(role, content) {
 
   msg.appendChild(label);
   msg.appendChild(body);
+
+  if (role === "assistant" && metrics) {
+    const metricsEl = document.createElement("div");
+    metricsEl.className = "msg-metrics";
+    const rouge = formatMetric(metrics.rouge_l);
+    const semantic = formatMetric(metrics.semantic_score);
+    const halluc = formatMetric(metrics.hallucination_ratio);
+    metricsEl.textContent = `ROUGE-L: ${rouge}   Semantic: ${semantic}   Hallucination: ${halluc}`;
+    msg.appendChild(metricsEl);
+  }
+
   threadEl.appendChild(msg);
 }
 
@@ -127,7 +145,7 @@ async function openChat(chatId) {
   const messages = (chat && chat.messages) || [];
   for (const m of messages) {
     if (!m || !m.role) continue;
-    renderMessage(m.role, m.content || "");
+    renderMessage(m.role, m.content || "", m.metrics);
   }
   scrollThreadToBottom();
 }
@@ -181,7 +199,7 @@ async function sendQuestion(question) {
     });
 
     currentChatId = data.chat_id;
-    renderMessage("assistant", data.answer || "");
+    renderMessage("assistant", data.answer || "", data.metrics);
     scrollThreadToBottom();
     await loadChatList();
     setStatus("");

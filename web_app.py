@@ -7,11 +7,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import re
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
 from fastapi.responses import FileResponse, HTMLResponse
 from openai import OpenAI
+from rouge_score import rouge_scorer
 
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -92,6 +95,52 @@ Answer:"""
         return (resp.choices[0].message.content or "").strip()
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM request failed: {e}")
+
+
+_ROUGE_SCORER = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+
+
+def _tokenize(text: str) -> set[str]:
+    return {tok for tok in re.findall(r"[a-zA-Z]+", text.lower()) if len(tok) > 2}
+
+
+def _truncate_text(text: str, max_chars: int = 15000) -> str:
+    if len(text) <= max_chars:
+        return text
+    return text[:max_chars]
+
+
+def _calculate_metrics(answer: str, chunks: list[dict[str, Any]]) -> dict[str, float] | None:
+    if not answer:
+        return None
+
+    context_text = "\n\n".join([str(c.get("text", "")) for c in (chunks or []) if c])
+    context_text = _truncate_text(context_text)
+    if not context_text.strip():
+        return None
+
+    rouge_l = float(_ROUGE_SCORER.score(context_text, answer)["rougeL"].fmeasure)
+
+    semantic_scores = [
+        float(c.get("semantic_score"))
+        for c in (chunks or [])
+        if c is not None and c.get("semantic_score") is not None
+    ]
+    semantic_score = float(sum(semantic_scores) / len(semantic_scores)) if semantic_scores else 0.0
+
+    answer_tokens = _tokenize(answer)
+    context_tokens = _tokenize(context_text)
+    if not answer_tokens:
+        hallucination_ratio = 0.0
+    else:
+        supported = len(answer_tokens & context_tokens)
+        hallucination_ratio = float((len(answer_tokens) - supported) / len(answer_tokens))
+
+    return {
+        "rouge_l": rouge_l,
+        "semantic_score": semantic_score,
+        "hallucination_ratio": hallucination_ratio,
+    }
 
 
 CHAT_STORE_PATH = ARTIFACTS_DIR / "chats.json"
@@ -203,6 +252,7 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Retrieval failed: {e}")
 
     answer = _generate_rag_answer(question, chunks)
+    metrics = _calculate_metrics(answer, chunks)
 
     chats = _read_chat_store()
     if chat_id:
@@ -217,7 +267,14 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
 
     chat["updated_at"] = _utc_now_iso()
     chat["messages"].append({"role": "user", "content": question, "ts": _utc_now_iso()})
-    chat["messages"].append({"role": "assistant", "content": answer, "ts": _utc_now_iso()})
+    chat["messages"].append(
+        {
+            "role": "assistant",
+            "content": answer,
+            "ts": _utc_now_iso(),
+            "metrics": metrics,
+        }
+    )
 
     _write_chat_store(chats)
 
@@ -225,4 +282,5 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
         "chat_id": chat["id"],
         "answer": answer,
         "question": question,
+        "metrics": metrics,
     }
