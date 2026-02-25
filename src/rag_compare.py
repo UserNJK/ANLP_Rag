@@ -39,7 +39,9 @@ def _generate_llm_answer(question: str, chunks: list[dict]) -> str:
     ])
     
     # Create prompt for the LLM
-    prompt = f"""Based on the following context, answer the question. If the answer cannot be found in the context, say so.
+    prompt = f"""Use only the context below to answer the question.
+Write a detailed and comprehensive answer (target 200-350 words) with key facts, dates, names, and important terms when available.
+If the answer cannot be found in the context, say so.
 
 Context:
 {context}
@@ -52,11 +54,11 @@ Answer:"""
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that answers questions based on the provided context. Be concise and accurate."},
+                {"role": "system", "content": "You are a helpful assistant that answers questions based on the provided context. Prefer completeness and detail over brevity — aim for 200-350 words."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=500,
+            temperature=0.3,
+            max_tokens=1200,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
@@ -74,11 +76,11 @@ def _make_non_rag_answer(question: str) -> str:
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant. Answer the question based on your training knowledge."},
+                {"role": "system", "content": "You are a helpful assistant. Answer the question based on your training knowledge. Keep your answer concise — aim for 200-350 words. Do not write lengthy essays."},
                 {"role": "user", "content": question}
             ],
             temperature=0.7,
-            max_tokens=500,
+            max_tokens=600,
         )
         return response.choices[0].message.content.strip()
     except Exception as e:

@@ -87,7 +87,8 @@ def _generate_rag_answer(question: str, chunks: list[dict[str, Any]], chat: dict
     )
 
     prompt = f"""Use only the context below to answer the question.
-Write a complete and specific answer.
+Write a detailed and comprehensive answer (target 200-350 words) with key facts, dates, names, and important terms when available.
+Use this structure: 1) Direct answer, 2) Key details, 3) Timeline / periodization (if present), 4) Sources used.
 If the context is insufficient, say what is missing instead of guessing.
 
 Context:
@@ -102,7 +103,8 @@ Answer:"""
             "role": "system",
             "content": "You are a grounded RAG assistant. Use ONLY the provided context. "
                        "You may use the conversation history to understand the user's intent, "
-                       "but your answer must be grounded in the retrieved context. Be direct and factual.",
+                       "but your answer must be grounded in the retrieved context. "
+                       "Prefer completeness and detail over brevity — aim for 200-350 words.",
         },
     ]
     # Add chat history for contextualisation
@@ -128,7 +130,8 @@ def _generate_non_rag_answer(question: str, chat: dict[str, Any] | None = None) 
         {
             "role": "system",
             "content": "You are a knowledgeable assistant specialising in Indian history. "
-                       "Answer the user's question using your own knowledge. Be direct and factual.",
+                       "Answer the user's question using your own knowledge. Be direct and factual. "
+                       "Keep your answer concise — aim for 200-350 words. Do not write lengthy essays.",
         },
     ]
     llm_messages.append({"role": "user", "content": question})
@@ -139,7 +142,7 @@ def _generate_non_rag_answer(question: str, chat: dict[str, Any] | None = None) 
             model=MODEL_NAME,
             messages=llm_messages,
             temperature=0.2,
-            max_tokens=900,
+            max_tokens=600,
         )
         return (resp.choices[0].message.content or "").strip()
     except Exception as e:
