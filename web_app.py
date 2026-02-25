@@ -56,7 +56,26 @@ def _import_retrieve():
 MODEL_NAME = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-70b-instruct")
 
 
-def _generate_rag_answer(question: str, chunks: list[dict[str, Any]]) -> str:
+def _build_chat_history_messages(chat: dict[str, Any] | None, limit: int = 6) -> list[dict[str, str]]:
+    """Build recent chat history as LLM messages for contextualised RAG."""
+    if not chat:
+        return []
+    messages = chat.get("messages", [])
+    history: list[dict[str, str]] = []
+    # Take last `limit` messages for context
+    recent = messages[-limit:] if len(messages) > limit else messages
+    for m in recent:
+        role = m.get("role", "user")
+        content = m.get("rag_answer") or m.get("content") or ""
+        if role == "assistant":
+            content = m.get("rag_answer") or m.get("content") or ""
+        else:
+            content = m.get("content") or ""
+        history.append({"role": role, "content": content})
+    return history
+
+
+def _generate_rag_answer(question: str, chunks: list[dict[str, Any]], chat: dict[str, Any] | None = None) -> str:
     if not chunks:
         return "No relevant context found in the local index. Try rebuilding the index or rephrasing your question."
 
@@ -78,17 +97,47 @@ Question: {question}
 
 Answer:"""
 
+    llm_messages: list[dict[str, str]] = [
+        {
+            "role": "system",
+            "content": "You are a grounded RAG assistant. Use ONLY the provided context. "
+                       "You may use the conversation history to understand the user's intent, "
+                       "but your answer must be grounded in the retrieved context. Be direct and factual.",
+        },
+    ]
+    # Add chat history for contextualisation
+    llm_messages.extend(_build_chat_history_messages(chat))
+    llm_messages.append({"role": "user", "content": prompt})
+
     client = _get_openrouter_client()
     try:
         resp = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a grounded RAG assistant. Use ONLY the provided context. Be direct and factual.",
-                },
-                {"role": "user", "content": prompt},
-            ],
+            messages=llm_messages,
+            temperature=0.2,
+            max_tokens=900,
+        )
+        return (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"LLM request failed: {e}")
+
+
+def _generate_non_rag_answer(question: str, chat: dict[str, Any] | None = None) -> str:
+    """Generate an answer using only the LLM's parametric knowledge (no retrieval context)."""
+    llm_messages: list[dict[str, str]] = [
+        {
+            "role": "system",
+            "content": "You are a knowledgeable assistant specialising in Indian history. "
+                       "Answer the user's question using your own knowledge. Be direct and factual.",
+        },
+    ]
+    llm_messages.append({"role": "user", "content": question})
+
+    client = _get_openrouter_client()
+    try:
+        resp = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=llm_messages,
             temperature=0.2,
             max_tokens=900,
         )
@@ -251,28 +300,33 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Retrieval failed: {e}")
 
-    answer = _generate_rag_answer(question, chunks)
-    metrics = _calculate_metrics(answer, chunks)
-
+    # Resolve or create the chat first so RAG can use history
     chats = _read_chat_store()
     if chat_id:
         chat = _find_chat(chats, chat_id)
         if not chat:
-            # If the client has a stale chat_id, start a new chat instead.
             chat = {"id": str(uuid.uuid4()), "created_at": _utc_now_iso(), "messages": []}
             chats.append(chat)
     else:
         chat = {"id": str(uuid.uuid4()), "created_at": _utc_now_iso(), "messages": []}
         chats.append(chat)
 
+    # Generate both RAG (contextualised) and non-RAG answers
+    rag_answer = _generate_rag_answer(question, chunks, chat)
+    non_rag_answer = _generate_non_rag_answer(question, chat)
+    rag_metrics = _calculate_metrics(rag_answer, chunks)
+
     chat["updated_at"] = _utc_now_iso()
     chat["messages"].append({"role": "user", "content": question, "ts": _utc_now_iso()})
     chat["messages"].append(
         {
             "role": "assistant",
-            "content": answer,
+            "rag_answer": rag_answer,
+            "non_rag_answer": non_rag_answer,
+            "content": rag_answer,  # backward compat
             "ts": _utc_now_iso(),
-            "metrics": metrics,
+            "rag_metrics": rag_metrics,
+            "metrics": rag_metrics,  # backward compat
         }
     )
 
@@ -280,7 +334,8 @@ def ask(payload: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "chat_id": chat["id"],
-        "answer": answer,
+        "rag_answer": rag_answer,
+        "non_rag_answer": non_rag_answer,
         "question": question,
-        "metrics": metrics,
+        "rag_metrics": rag_metrics,
     }

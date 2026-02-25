@@ -3,37 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ANLP_Rag</title>
-    <link rel="stylesheet" href="/assets/styles.css?v=4" />
+    <title>Bot - Indian History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="/assets/styles.css?v=7" />
   </head>
   <body>
     <div class="app">
-      <aside class="sidebar" aria-label="Chat history">
+      <!-- ─── Sidebar ─── -->
+      <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-          <div class="brand">ANLP_Rag</div>
-          <button id="newChatBtn" class="btn btn-ghost" type="button">New</button>
+          <button id="newChatBtn" class="btn-new-chat" type="button" title="New chat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <span>New chat</span>
+          </button>
         </div>
         <div id="chatList" class="chat-list" role="list"></div>
+        <div class="sidebar-footer">
+          <div class="sidebar-footer-text">Bot &middot; Indian History</div>
+        </div>
       </aside>
 
-      <main class="main" aria-label="Chat">
+      <!-- Mobile sidebar toggle -->
+      <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- ─── Main ─── -->
+      <main class="main">
+        <!-- Welcome screen -->
+        <div id="welcome" class="welcome">
+          <div class="welcome-logo">Bot</div>
+          <p class="welcome-sub">Ask anything about Indian history</p>
+          <div class="welcome-chips">
+            <button class="chip" type="button">
+              <span class="chip-text">Who was Emperor Ashoka?</span>
+              <svg class="chip-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </button>
+            <button class="chip" type="button">
+              <span class="chip-text">Tell me about the Mughal Empire</span>
+              <svg class="chip-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </button>
+            <button class="chip" type="button">
+              <span class="chip-text">What caused the decline of the Mauryas?</span>
+              <svg class="chip-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </button>
+            <button class="chip" type="button">
+              <span class="chip-text">Describe the Vijayanagar Empire</span>
+              <svg class="chip-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Thread -->
         <div id="thread" class="thread" aria-live="polite"></div>
 
-        <form id="askForm" class="composer" autocomplete="off">
-          <input
-            id="questionInput"
-            class="composer-input"
-            type="text"
-            placeholder="Ask a question…"
-            aria-label="Question"
-          />
-          <button id="sendBtn" class="btn btn-primary" type="submit">Send</button>
-        </form>
+        <!-- Typing indicator -->
+        <div id="typing" class="typing-indicator" hidden>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
 
-        <div id="status" class="status" role="status"></div>
+        <!-- Composer -->
+        <div class="composer-wrapper">
+          <form id="askForm" class="composer" autocomplete="off">
+            <div class="composer-inner">
+              <input
+                id="questionInput"
+                class="composer-input"
+                type="text"
+                placeholder="Message Bot…"
+                aria-label="Question"
+              />
+              <button id="sendBtn" class="btn-send" type="submit" title="Send message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
+            </div>
+            <div id="status" class="status" role="status"></div>
+          </form>
+        </div>
       </main>
     </div>
 
-    <script src="/assets/app.js?v=4"></script>
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+
+    <script src="/assets/app.js?v=7"></script>
   </body>
 </html>
