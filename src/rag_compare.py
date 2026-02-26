@@ -57,7 +57,7 @@ Answer:"""
                 {"role": "system", "content": "You are a helpful assistant that answers questions based on the provided context. Prefer completeness and detail over brevity — aim for 200-350 words."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.3,
+                temperature=0.13,
             max_tokens=1200,
         )
         return response.choices[0].message.content.strip()
@@ -79,7 +79,7 @@ def _make_non_rag_answer(question: str) -> str:
                 {"role": "system", "content": "You are a helpful assistant. Answer the question based on your training knowledge. Keep your answer concise — aim for 200-350 words. Do not write lengthy essays."},
                 {"role": "user", "content": question}
             ],
-            temperature=0.7,
+                temperature=0.13,
             max_tokens=600,
         )
         return response.choices[0].message.content.strip()

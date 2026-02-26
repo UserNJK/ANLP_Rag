@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import re
+import unicodedata
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -75,6 +76,37 @@ def _build_chat_history_messages(chat: dict[str, Any] | None, limit: int = 6) ->
     return history
 
 
+def _remove_emojis(text: str) -> str:
+    out: list[str] = []
+    for char in text:
+        cp = ord(char)
+        if (
+            0x1F300 <= cp <= 0x1FAFF
+            or 0x1F1E6 <= cp <= 0x1F1FF
+            or 0x2600 <= cp <= 0x27BF
+            or 0xFE00 <= cp <= 0xFE0F
+            or cp == 0x200D
+        ):
+            continue
+        out.append(char)
+    return "".join(out)
+
+
+def _sanitize_plain_text(text: str) -> str:
+    cleaned = text or ""
+
+    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r"__(.*?)__", r"\1", cleaned, flags=re.DOTALL)
+    cleaned = cleaned.replace("**", "").replace("__", "")
+
+    cleaned = _remove_emojis(cleaned)
+
+    cleaned = unicodedata.normalize("NFKC", cleaned)
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
 def _generate_rag_answer(question: str, chunks: list[dict[str, Any]], chat: dict[str, Any] | None = None) -> str:
     if not chunks:
         return "No relevant context found in the local index. Try rebuilding the index or rephrasing your question."
@@ -90,6 +122,7 @@ def _generate_rag_answer(question: str, chunks: list[dict[str, Any]], chat: dict
 Write a detailed and comprehensive answer (target 200-350 words) with key facts, dates, names, and important terms when available.
 Use this structure: 1) Direct answer, 2) Key details, 3) Timeline / periodization (if present), 4) Sources used.
 If the context is insufficient, say what is missing instead of guessing.
+Output plain text only: do not use markdown formatting (especially bold like **text**) and do not use emojis.
 
 Context:
 {context}
@@ -104,7 +137,8 @@ Answer:"""
             "content": "You are a grounded RAG assistant. Use ONLY the provided context. "
                        "You may use the conversation history to understand the user's intent, "
                        "but your answer must be grounded in the retrieved context. "
-                       "Prefer completeness and detail over brevity — aim for 200-350 words.",
+                       "Prefer completeness and detail over brevity — aim for 200-350 words. "
+                       "Return plain text only. Do not use markdown bold or emojis.",
         },
     ]
     # Add chat history for contextualisation
@@ -116,10 +150,11 @@ Answer:"""
         resp = client.chat.completions.create(
             model=MODEL_NAME,
             messages=llm_messages,
-            temperature=0.2,
+            temperature=0.13,
             max_tokens=900,
         )
-        return (resp.choices[0].message.content or "").strip()
+        answer = (resp.choices[0].message.content or "").strip()
+        return _sanitize_plain_text(answer)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM request failed: {e}")
 
@@ -131,7 +166,8 @@ def _generate_non_rag_answer(question: str, chat: dict[str, Any] | None = None) 
             "role": "system",
             "content": "You are a knowledgeable assistant specialising in Indian history. "
                        "Answer the user's question using your own knowledge. Be direct and factual. "
-                       "Keep your answer concise — aim for 200-350 words. Do not write lengthy essays.",
+                       "Keep your answer concise — aim for 200-350 words. Do not write lengthy essays. "
+                       "Return plain text only. Do not use markdown bold or emojis.",
         },
     ]
     llm_messages.append({"role": "user", "content": question})
@@ -141,10 +177,11 @@ def _generate_non_rag_answer(question: str, chat: dict[str, Any] | None = None) 
         resp = client.chat.completions.create(
             model=MODEL_NAME,
             messages=llm_messages,
-            temperature=0.2,
+            temperature=0.13,
             max_tokens=600,
         )
-        return (resp.choices[0].message.content or "").strip()
+        answer = (resp.choices[0].message.content or "").strip()
+        return _sanitize_plain_text(answer)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"LLM request failed: {e}")
 

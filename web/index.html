@@ -6,7 +6,7 @@
     <title>Bot - Indian History</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="/assets/styles.css?v=7" />
+    <link rel="stylesheet" href="/assets/styles.css?v=8" />
   </head>
   <body>
     <div class="app">
@@ -18,6 +18,9 @@
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
             <span>New chat</span>
+          </button>
+          <button id="sidebarCollapseBtn" class="sidebar-collapse-btn" type="button" title="Collapse sidebar" aria-label="Collapse sidebar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
         </div>
         <div id="chatList" class="chat-list" role="list"></div>
@@ -93,6 +96,13 @@
     <!-- Backdrop for mobile sidebar -->
     <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 
-    <script src="/assets/app.js?v=7"></script>
+    <!-- Expand sidebar button (visible when sidebar is collapsed on desktop) -->
+    <button id="sidebarExpandBtn" class="sidebar-expand-btn" type="button" title="Expand sidebar" aria-label="Expand sidebar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
+    <script src="/assets/app.js?v=8"></script>
   </body>
 </html>

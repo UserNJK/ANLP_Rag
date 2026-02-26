@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import os
 from pathlib import Path
+import re
+import unicodedata
 
 import numpy as np
 import torch
@@ -38,6 +40,34 @@ def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     return float(np.dot(a, b) / denom)
 
 
+def _remove_emojis(text: str) -> str:
+    out: list[str] = []
+    for char in text:
+        cp = ord(char)
+        if (
+            0x1F300 <= cp <= 0x1FAFF
+            or 0x1F1E6 <= cp <= 0x1F1FF
+            or 0x2600 <= cp <= 0x27BF
+            or 0xFE00 <= cp <= 0xFE0F
+            or cp == 0x200D
+        ):
+            continue
+        out.append(char)
+    return "".join(out)
+
+
+def _sanitize_plain_text(text: str) -> str:
+    cleaned = text or ""
+    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned, flags=re.DOTALL)
+    cleaned = re.sub(r"__(.*?)__", r"\1", cleaned, flags=re.DOTALL)
+    cleaned = cleaned.replace("**", "").replace("__", "")
+    cleaned = _remove_emojis(cleaned)
+    cleaned = unicodedata.normalize("NFKC", cleaned)
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
 def _generate_rag_answer(question: str, chunks: list[dict]) -> str:
     """Generate an answer using LLM with retrieved context."""
     if not chunks:
@@ -53,6 +83,7 @@ def _generate_rag_answer(question: str, chunks: list[dict]) -> str:
     prompt = f"""Use only the context below to answer the question.
 Write a complete and specific answer (target 180-300 words) with key details, timeline, and important terms when available.
 If the context is insufficient, clearly state what is missing instead of guessing.
+Output plain text only: do not use markdown formatting (especially bold like **text**) and do not use emojis.
 Use this structure:
 1) Direct answer
 2) Key details
@@ -70,13 +101,13 @@ Answer:"""
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a historical RAG assistant. Provide detailed, faithful answers grounded in the provided context only. Prefer completeness over brevity, but avoid fluff."},
+                {"role": "system", "content": "You are a historical RAG assistant. Provide detailed, faithful answers grounded in the provided context only. Prefer completeness over brevity, but avoid fluff. Return plain text only. Do not use markdown bold or emojis."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
+            temperature=0.13,
             max_tokens=1200,
         )
-        return response.choices[0].message.content.strip()
+        return _sanitize_plain_text(response.choices[0].message.content.strip())
     except Exception as e:
         return f"Error generating answer: {str(e)}"
 
@@ -87,13 +118,13 @@ def _generate_non_rag_answer(question: str) -> str:
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant. Answer the question based on your training knowledge. Keep your answer concise — aim for 200-350 words. Do not write lengthy essays."},
+                {"role": "system", "content": "You are a helpful assistant. Answer the question based on your training knowledge. Keep your answer concise — aim for 200-350 words. Do not write lengthy essays. Return plain text only. Do not use markdown bold or emojis."},
                 {"role": "user", "content": question}
             ],
-            temperature=0.7,
+            temperature=0.13,
             max_tokens=600,
         )
-        return response.choices[0].message.content.strip()
+        return _sanitize_plain_text(response.choices[0].message.content.strip())
     except Exception as e:
         return f"Error generating answer: {str(e)}"
 

@@ -61,6 +61,11 @@ body {
   height: 100vh;
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
+  transition: grid-template-columns 0.3s var(--ease);
+}
+
+.app.sidebar-collapsed {
+  grid-template-columns: 0px 1fr;
 }
 
 /* ───────────────────────────────────────────────
@@ -70,11 +75,23 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--sidebar-bg);
-  transition: transform 0.3s var(--ease);
+  transition: transform 0.3s var(--ease), width 0.3s var(--ease), min-width 0.3s var(--ease), opacity 0.2s var(--ease);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.app.sidebar-collapsed .sidebar {
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebar-header {
   padding: 12px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-new-chat {
@@ -191,6 +208,46 @@ body {
   font-size: 12px;
   color: var(--muted);
   text-align: center;
+}
+
+/* ─── Sidebar collapse button (desktop) ─── */
+.sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-collapse-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* ─── Expand toggle shown when sidebar is collapsed ─── */
+.sidebar-expand-btn {
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.app.sidebar-collapsed ~ .sidebar-expand-btn,
+.sidebar-expand-btn.visible {
+  display: flex;
 }
 
 /* ───────────────────────────────────────────────
@@ -320,7 +377,7 @@ body {
 }
 
 .msg-inner {
-  max-width: 680px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
@@ -403,6 +460,19 @@ body {
   color: var(--muted);
 }
 
+/* ─── Dual answer side-by-side container ─── */
+.dual-answers {
+  display: flex;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.dual-answers .answer-section {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
 /* ─── Answer sections (RAG / Non RAG) ─── */
 .answer-section {
   margin-top: 12px;
@@ -451,7 +521,7 @@ body {
   align-items: center;
   gap: 5px;
   padding: 12px 0;
-  max-width: 680px;
+  max-width: 960px;
   margin: 0 auto;
   padding-left: 70px;
   animation: fadeIn 0.2s ease;
@@ -483,7 +553,7 @@ body {
 }
 
 .composer {
-  max-width: 680px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -574,6 +644,7 @@ body {
    ─────────────────────────────────────────────── */
 @media (max-width: 860px) {
   .app { grid-template-columns: 1fr; }
+  .app.sidebar-collapsed { grid-template-columns: 1fr; }
 
   .sidebar {
     position: fixed;
@@ -585,6 +656,10 @@ body {
   .sidebar.open { transform: translateX(0); }
 
   .sidebar-toggle { display: flex; }
+  .sidebar-collapse-btn { display: none; }
+  .sidebar-expand-btn { display: none !important; }
+
+  .dual-answers { flex-direction: column; }
 
   .welcome-chips {
     grid-template-columns: 1fr;

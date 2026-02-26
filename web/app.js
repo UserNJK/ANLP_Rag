@@ -14,6 +14,9 @@ const typingEl       = document.getElementById("typing");
 const sidebarEl      = document.getElementById("sidebar");
 const sidebarToggle  = document.getElementById("sidebarToggle");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const sidebarCollapseBtn = document.getElementById("sidebarCollapseBtn");
+const sidebarExpandBtn   = document.getElementById("sidebarExpandBtn");
+const appEl              = document.querySelector(".app");
 
 /* ─── Helpers ─── */
 function setStatus(text) {
@@ -80,6 +83,20 @@ function closeSidebar() {
 if (sidebarToggle)  sidebarToggle.addEventListener("click", openSidebar);
 if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", closeSidebar);
 
+/* ─── Desktop sidebar collapse / expand ─── */
+function collapseSidebar() {
+  appEl.classList.add("sidebar-collapsed");
+  if (sidebarExpandBtn) sidebarExpandBtn.classList.add("visible");
+}
+
+function expandSidebar() {
+  appEl.classList.remove("sidebar-collapsed");
+  if (sidebarExpandBtn) sidebarExpandBtn.classList.remove("visible");
+}
+
+if (sidebarCollapseBtn) sidebarCollapseBtn.addEventListener("click", collapseSidebar);
+if (sidebarExpandBtn)   sidebarExpandBtn.addEventListener("click", expandSidebar);
+
 /* ─── Message rendering (ChatGPT-style full-width rows) ─── */
 function renderMessage(role, content, metrics) {
   showThread();
@@ -142,6 +159,10 @@ function renderDualMessage(ragAnswer, nonRagAnswer, ragMetrics) {
   roleLabel.textContent = "Bot";
   body.appendChild(roleLabel);
 
+  // Side-by-side wrapper
+  const dualWrapper = document.createElement("div");
+  dualWrapper.className = "dual-answers";
+
   // --- RAG section ---
   const ragSection = document.createElement("div");
   ragSection.className = "answer-section rag-section";
@@ -177,7 +198,7 @@ function renderDualMessage(ragAnswer, nonRagAnswer, ragMetrics) {
     ragSection.appendChild(metricsEl);
   }
 
-  body.appendChild(ragSection);
+  dualWrapper.appendChild(ragSection);
 
   // --- Non-RAG section ---
   const nonRagSection = document.createElement("div");
@@ -193,7 +214,9 @@ function renderDualMessage(ragAnswer, nonRagAnswer, ragMetrics) {
   nonRagContent.innerHTML = escapeHtml(nonRagAnswer || "");
   nonRagSection.appendChild(nonRagContent);
 
-  body.appendChild(nonRagSection);
+  dualWrapper.appendChild(nonRagSection);
+
+  body.appendChild(dualWrapper);
 
   inner.appendChild(avatar);
   inner.appendChild(body);
